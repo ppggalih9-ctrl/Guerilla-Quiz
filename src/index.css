@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Fredoka', 'Plus Jakarta Sans', sans-serif;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+}
+
+.font-title {
+  font-family: 'Mali', cursive, sans-serif;
+}
+
+.font-body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Playful 3D Button Shadows */
+.btn-bubble {
+  transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0px 6px 0px rgba(0, 0, 0, 0.18);
+}
+.btn-bubble:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0px 8px 0px rgba(0, 0, 0, 0.18);
+}
+.btn-bubble:active {
+  transform: translateY(4px) scale(0.98);
+  box-shadow: 0px 2px 0px rgba(0, 0, 0, 0.18);
+}
+
+.card-bubble {
+  box-shadow: 0px 10px 0px rgba(0, 0, 0, 0.08), 0px 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Floating Clouds Animation */
+@keyframes floatCloudLeft {
+  0% { transform: translateX(-15px); }
+  50% { transform: translateX(25px); }
+  100% { transform: translateX(-15px); }
+}
+
+@keyframes floatCloudRight {
+  0% { transform: translateX(20px); }
+  50% { transform: translateX(-20px); }
+  100% { transform: translateX(20px); }
+}
+
+.animate-cloud-slow {
+  animation: floatCloudLeft 16s ease-in-out infinite;
+}
+
+.animate-cloud-fast {
+  animation: floatCloudRight 22s ease-in-out infinite;
+}
+
+@keyframes pulseScale {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+.animate-pulse-scale {
+  animation: pulseScale 0.7s ease-in-out infinite;
+}
+

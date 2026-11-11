@@ -1,0 +1,6 @@
+{
+  "name": "Guerilla Class Quiz - Game Edukasi Interaktif",
+  "description": "Game kuis interaktif ice-breaking kelas dengan gerakan Berdiri (Benar) dan Duduk (Salah), dilengkapi backsound seru dan ilustrasi siswa.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

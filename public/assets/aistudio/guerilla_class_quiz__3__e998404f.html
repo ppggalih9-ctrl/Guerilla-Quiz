@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guerilla Class Quiz - Game Edukasi Interaktif</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Custom Fonts & Playful Styles -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Mali:wght@600;700&display=swap');
+
+    body {
+      font-family: 'Fredoka', cursive, sans-serif;
+      background: linear-gradient(to bottom, #87CEEB 0%, #B0E0E6 50%, #90EE90 100%);
+      overflow-x: hidden;
+    }
+
+    .font-title {
+      font-family: 'Mali', cursive;
+    }
+
+    /* Text Outline / Shadow effect like kids game UI */
+    .text-stroke-orange {
+      color: #FF7043;
+      text-shadow: 
+        3px 3px 0 #FFF,
+        -3px -3px 0 #FFF,
+        3px -3px 0 #FFF,
+        -3px 3px 0 #FFF,
+        0px 6px 0px rgba(0,0,0,0.15);
+    }
+
+    .text-stroke-white {
+      text-shadow: 
+        2px 2px 0 #334155,
+        -2px -2px 0 #334155,
+        2px -2px 0 #334155,
+        -2px 2px 0 #334155;
+    }
+
+    /* Round 3D Playful Buttons */
+    .btn-bubble {
+      transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0px 8px 0px rgba(0, 0, 0, 0.2);
+    }
+    .btn-bubble:hover {
+      transform: translateY(-2px) scale(1.03);
+    }
+    .btn-bubble:active {
+      transform: translateY(4px) scale(0.97);
+      box-shadow: 0px 2px 0px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Floating Clouds Animation */
+    @keyframes floatCloud {
+      0% { transform: translateX(-10%); }
+      50% { transform: translateX(10%); }
+      100% { transform: translateX(-10%); }
+    }
+    .animate-cloud-1 { animation: floatCloud 18s infinite ease-in-out; }
+    .animate-cloud-2 { animation: floatCloud 24s infinite ease-in-out reverse; }
+
+    /* Pulse Timer */
+    @keyframes pulseScale {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    .animate-pulse-scale { animation: pulseScale 0.8s infinite ease-in-out; }
+
+    .modal-backdrop {
+      background-color: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(6px);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-3 md:p-6 text-slate-800 select-none relative">
+
+  <!-- BACKGROUND DECORATION (Clouds, Hills, Flowers) -->
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+    <!-- Sky Clouds -->
+    <div class="absolute top-6 left-10 text-6xl opacity-80 animate-cloud-1">☁️</div>
+    <div class="absolute top-16 right-20 text-7xl opacity-80 animate-cloud-2">☁️</div>
+    <div class="absolute top-4 left-1/2 text-5xl opacity-70 animate-cloud-1">☁️</div>
+
+    <!-- Flowers & Butterflies at Bottom Hill -->
+    <div class="absolute bottom-0 w-full h-32 bg-emerald-400 rounded-t-[100%] scale-x-125 translate-y-12"></div>
+    <div class="absolute bottom-0 w-full h-24 bg-green-500 rounded-t-[80%] scale-x-150 translate-y-8 opacity-90"></div>
+    
+    <div class="absolute bottom-4 left-8 text-3xl">🌸 🌼 🌺</div>
+    <div class="absolute bottom-6 right-12 text-3xl">🦋 🌼 🌸</div>
+    <div class="absolute top-1/3 left-6 text-2xl">🦋</div>
+    <div class="absolute top-1/2 right-8 text-2xl">🦋</div>
+  </div>
+
+  <!-- TOP BAR (GAME UI STYLE) -->
+  <header class="w-full max-w-5xl mx-auto flex justify-between items-center relative z-10 mb-2">
+    <!-- Left Action Buttons (Audio & Info) -->
+    <div class="flex items-center gap-3">
+      <!-- Button Music BGM Toggle -->
+      <button id="bgmBtn" onclick="toggleBGM()" class="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-b from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-white rounded-full border-4 border-white flex items-center justify-center text-xl md:text-2xl shadow-lg btn-bubble" title="Musik Backsound">
+        🔊
+      </button>
+      <div class="bg-white/80 backdrop-blur-md px-4 py-2 rounded-2xl border-2 border-sky-300 shadow-md">
+        <span class="text-xs text-sky-700 font-bold block">ICE BREAKING CLASS</span>
+        <span class="text-base md:text-lg font-black text-amber-600" id="questionCounter">Soal 1 / 5</span>
+      </div>
+    </div>
+
+    <!-- Title Badge -->
+    <div class="text-center hidden sm:block">
+      <h1 class="text-2xl md:text-3xl font-black font-title tracking-wide text-stroke-orange">
+        GUERILLA QUIZ
+      </h1>
+    </div>
+
+    <!-- Right Action Button (Editor) -->
+    <button onclick="openEditorModal()" class="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-b from-sky-400 to-sky-600 hover:from-sky-300 hover:to-sky-500 text-white rounded-full border-4 border-white flex items-center justify-center text-xl md:text-2xl shadow-lg btn-bubble" title="Edit Soal">
+      ⚙️
+    </button>
+  </header>
+
+  <!-- MAIN CARD CONTAINER -->
+  <main class="w-full max-w-4xl mx-auto my-auto relative z-10 bg-white/90 backdrop-blur-md rounded-3xl p-6 md:p-10 border-8 border-amber-300 shadow-2xl">
+    
+    <!-- SLIDE CONTAINER -->
+    <div id="mainSlideContainer" class="flex flex-col items-center text-center">
+
+      <!-- TAMPILAN SOAL (SLIDE 1) -->
+      <div id="questionView" class="w-full flex flex-col items-center">
+        <!-- Question Header Badge -->
+        <div class="bg-gradient-to-r from-sky-400 to-emerald-400 text-white font-black px-6 py-2 rounded-full text-base md:text-lg mb-4 shadow-md border-2 border-white">
+          📝 PERTANYAAN
+        </div>
+
+        <!-- Question Text Box -->
+        <div class="min-h-[130px] flex items-center justify-center w-full px-2 mb-6">
+          <h2 id="questionText" class="text-2xl md:text-4xl font-extrabold text-slate-700 leading-tight">
+            Memuat pertanyaan...
+          </h2>
+        </div>
+
+        <!-- KARTU OPSI GERAKAN (BERDIRI / DUDUK) -->
+        <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 my-2">
+          
+          <!-- Opsi BENAR = BERDIRI -->
+          <div class="bg-gradient-to-b from-emerald-400 to-emerald-600 rounded-3xl p-5 text-white shadow-lg border-4 border-white flex items-center justify-between">
+            <div class="text-left">
+              <span class="bg-emerald-800/50 text-emerald-100 text-xs font-black uppercase px-3 py-1 rounded-full">JIKA BENAR</span>
+              <h3 class="text-4xl font-black mt-1 text-yellow-300 tracking-wider">BERDIRI</h3>
+            </div>
+            <!-- SVG Murid Berdiri Sesuai Gambar (Seragam Biru - Acungan Jempol) -->
+            <div class="w-24 h-28 bg-white/20 rounded-2xl flex items-center justify-center p-1 border-2 border-white/40 shrink-0">
+              <svg viewBox="0 0 120 150" class="w-full h-full drop-shadow">
+                <!-- Kepala & Rambut Hitam -->
+                <circle cx="60" cy="30" r="18" fill="#FDBA74" />
+                <path d="M 40 28 C 38 12, 82 12, 80 28 C 76 16, 44 16, 40 28 Z" fill="#1E293B" />
+                <path d="M 42 22 L 50 14 L 60 20 L 70 12 L 78 22 Z" fill="#1E293B" />
+                <!-- Wajah & Mata -->
+                <circle cx="53" cy="28" r="2.5" fill="#1E293B" />
+                <circle cx="67" cy="28" r="2.5" fill="#1E293B" />
+                <path d="M 54 34 Q 60 39 66 34" stroke="#1E293B" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <!-- Kemeja Biru Muda & Kerah -->
+                <path d="M 38 48 L 82 48 L 76 88 L 44 88 Z" fill="#60A5FA" stroke="#2563EB" stroke-width="1.5"/>
+                <polygon points="52,48 60,56 50,56" fill="#1E40AF" />
+                <polygon points="68,48 60,56 70,56" fill="#1E40AF" />
+                <!-- Logo Badge & Saku -->
+                <rect x="68" y="58" width="8" height="10" rx="1" fill="#FFFFFF" stroke="#1E40AF" stroke-width="1"/>
+                <polygon points="72,60 75,64 69,64" fill="#DC2626"/>
+                <!-- Tangan Kiri di Pinggang -->
+                <path d="M 40 50 L 30 64 L 38 72" stroke="#60A5FA" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <!-- Tangan Kanan Acungan Jempol (Thumbs Up) -->
+                <path d="M 80 50 L 92 62 L 90 74" stroke="#60A5FA" stroke-width="7" stroke-linecap="round" fill="none"/>
+                <circle cx="90" cy="74" r="5" fill="#FDBA74" />
+                <path d="M 90 74 L 90 66" stroke="#FDBA74" stroke-width="4" stroke-linecap="round"/> <!-- Jempol -->
+                <!-- Celana Navy & Sabuk -->
+                <rect x="44" y="86" width="32" height="6" fill="#1E293B" />
+                <rect x="56" y="86" width="8" height="6" fill="#CBD5E1" /> <!-- Ikat Pinggang -->
+                <path d="M 44 92 L 76 92 L 74 135 L 61 135 L 60 106 L 59 106 L 58 135 L 46 135 Z" fill="#1E3A8A" />
+                <!-- Sepatu Hitam -->
+                <ellipse cx="51" cy="138" rx="8" ry="4" fill="#0F172A" />
+                <ellipse cx="69" cy="138" rx="8" ry="4" fill="#0F172A" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Opsi SALAH = DUDUK -->
+          <div class="bg-gradient-to-b from-rose-400 to-rose-600 rounded-3xl p-5 text-white shadow-lg border-4 border-white flex items-center justify-between">
+            <div class="text-left">
+              <span class="bg-rose-950/50 text-rose-100 text-xs font-black uppercase px-3 py-1 rounded-full">JIKA SALAH</span>
+              <h3 class="text-4xl font-black mt-1 text-yellow-300 tracking-wider">DUDUK</h3>
+            </div>
+            <!-- SVG Murid Duduk Sesuai Gambar (Seragam Biru & Meja - Melambaikan Tangan) -->
+            <div class="w-24 h-28 bg-white/20 rounded-2xl flex items-center justify-center p-1 border-2 border-white/40 shrink-0">
+              <svg viewBox="0 0 120 150" class="w-full h-full drop-shadow">
+                <!-- Sandaran Kursi -->
+                <rect x="35" y="50" width="50" height="25" rx="3" fill="#D97706" stroke="#92400E" stroke-width="1.5"/>
+                <rect x="42" y="75" width="5" height="40" fill="#64748B" />
+                <rect x="73" y="75" width="5" height="40" fill="#64748B" />
+                <!-- Kepala & Rambut -->
+                <circle cx="60" cy="30" r="17" fill="#FDBA74" />
+                <path d="M 42 28 C 40 12, 80 12, 78 28 C 74 16, 46 16, 42 28 Z" fill="#1E293B" />
+                <!-- Mata & Senyum -->
+                <circle cx="54" cy="29" r="2.5" fill="#1E293B" />
+                <circle cx="66" cy="29" r="2.5" fill="#1E293B" />
+                <path d="M 54 35 Q 60 40 66 35" stroke="#1E293B" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <!-- Badannya (Kemeja Biru) -->
+                <path d="M 42 46 L 78 46 L 74 78 L 46 78 Z" fill="#60A5FA" stroke="#2563EB" stroke-width="1.5"/>
+                <polygon points="54,46 60,54 52,54" fill="#1E40AF" />
+                <polygon points="66,46 60,54 68,54" fill="#1E40AF" />
+                <!-- Tangan Kiri Melambaikan Tangan (Waving 👋) -->
+                <path d="M 76 48 L 90 40 L 96 28" stroke="#60A5FA" stroke-width="6" stroke-linecap="round" fill="none"/>
+                <circle cx="96" cy="26" r="5" fill="#FDBA74" />
+                <path d="M 94 22 L 99 26" stroke="#FDBA74" stroke-width="2" stroke-linecap="round"/> <!-- Jari -->
+                <!-- Tangan Kanan di Atas Meja -->
+                <path d="M 44 48 L 36 68 L 52 70" stroke="#60A5FA" stroke-width="6" stroke-linecap="round" fill="none"/>
+                <circle cx="53" cy="70" r="4" fill="#FDBA74" />
+                <!-- Meja Belajar Kayu & Kaki Meja -->
+                <rect x="20" y="72" width="80" height="10" rx="2" fill="#F59E0B" stroke="#B45309" stroke-width="1.5" />
+                <rect x="25" y="82" width="70" height="14" fill="#E2E8F0" stroke="#94A3B8" stroke-width="1" />
+                <rect x="26" y="96" width="6" height="42" fill="#64748B" />
+                <rect x="88" y="96" width="6" height="42" fill="#64748B" />
+                <!-- Celana Navy & Sepatu (Tampak Bawah Meja) -->
+                <rect x="46" y="96" width="11" height="32" fill="#1E3A8A" />
+                <rect x="63" y="96" width="11" height="32" fill="#1E3A8A" />
+                <ellipse cx="51" cy="132" rx="7" ry="4" fill="#0F172A" />
+                <ellipse cx="68" cy="132" rx="7" ry="4" fill="#0F172A" />
+              </svg>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- BIG PLAY BUTTON (Like Image Reference) -->
+        <button onclick="startCountdownPhase()" class="mt-4 bg-gradient-to-b from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-amber-950 font-black text-2xl md:text-3xl px-10 py-5 rounded-full border-4 border-white shadow-xl btn-bubble flex items-center gap-3">
+          <span class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-amber-500 text-xl shadow-inner">▶</span>
+          <span>SIAP BERGERAK! (5 DETIK)</span>
+        </button>
+      </div>
+
+      <!-- TAMPILAN TIMER 5 DETIK (SLIDE 2) -->
+      <div id="timerView" class="w-full flex-col items-center justify-center py-4 hidden">
+        <h3 class="text-2xl md:text-3xl font-black text-amber-600 mb-2 font-title">SIAP-SIAP... BERGERAK!</h3>
+        <p class="text-slate-600 mb-4 font-bold">BERDIRI jika Benar, DUDUK jika Salah!</p>
+        
+        <!-- Big Playful Timer Circle -->
+        <div class="relative w-44 h-44 md:w-56 md:h-56 flex items-center justify-center bg-gradient-to-b from-amber-100 to-amber-200 rounded-full border-8 border-amber-400 shadow-2xl my-2">
+          <span id="countdownNumber" class="text-8xl md:text-9xl font-black text-rose-500 animate-pulse-scale">5</span>
+        </div>
+        
+        <p class="mt-4 text-slate-500 font-bold italic">Ayo kompak seluruh kelas! 🏃‍♀️🏃‍♂️</p>
+      </div>
+
+    </div>
+
+    <!-- CONTROL NAVIGATION BOTTOM BAR -->
+    <div class="mt-8 pt-4 border-t-4 border-amber-100 flex justify-between items-center">
+      <button onclick="previousQuestion()" id="btnPrev" class="bg-slate-300 hover:bg-slate-400 text-slate-800 px-5 py-2.5 rounded-2xl font-black btn-bubble disabled:opacity-40 disabled:cursor-not-allowed">
+        ⬅️ Sebelum
+      </button>
+
+      <span class="text-slate-400 font-bold text-xs md:text-sm hidden sm:inline">Gunakan Spasi / Panah ⌨️</span>
+
+      <button onclick="nextQuestion()" id="btnNext" class="bg-gradient-to-b from-emerald-400 to-emerald-600 hover:from-emerald-300 hover:to-emerald-500 text-white px-6 py-2.5 rounded-2xl font-black btn-bubble">
+        Berikutnya ➡️
+      </button>
+    </div>
+
+  </main>
+
+  <!-- MODAL POP-UP JAWABAN (SLIDE 3) -->
+  <div id="answerModal" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 text-center border-8 border-amber-300 shadow-2xl relative">
+      
+      <!-- Status Jawaban Badge -->
+      <div id="modalHeaderBadge" class="inline-block px-8 py-2 rounded-full font-black text-xl text-white mb-4 bg-emerald-500 shadow-lg border-2 border-white">
+        JAWABAN: BENAR
+      </div>
+
+      <h3 class="text-lg font-bold text-slate-600 mb-2">POSISI GERAKAN:</h3>
+
+      <!-- Box Action -->
+      <div id="modalActionBox" class="my-3 p-6 rounded-3xl bg-emerald-100 border-4 border-emerald-400 flex flex-col items-center justify-center">
+        <span id="modalActionText" class="text-5xl font-black text-emerald-800 mb-3">BERDIRI 🧍</span>
+        <div id="modalSvgContainer" class="w-24 h-28"></div>
+      </div>
+
+      <!-- Continue Button -->
+      <button onclick="closeAnswerModal()" class="w-full mt-4 bg-gradient-to-b from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-amber-950 font-black text-xl py-3.5 rounded-2xl btn-bubble border-2 border-white shadow-lg">
+        Lanjut ➡️
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL EDITOR SOAL -->
+  <div id="editorModal" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-6 text-left border-8 border-sky-300 shadow-2xl max-h-[90vh] flex flex-col">
+      <div class="flex justify-between items-center mb-4 border-b pb-3">
+        <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">⚙️ Edit Daftar Soal & Jawaban</h3>
+        <button onclick="closeEditorModal()" class="text-slate-400 hover:text-slate-600 text-3xl font-bold">&times;</button>
+      </div>
+
+      <div class="overflow-y-auto flex-grow space-y-4 pr-2" id="editorQuestionsList"></div>
+
+      <div class="mt-4 pt-3 border-t flex justify-between gap-3">
+        <button onclick="addNewQuestionField()" class="bg-sky-500 hover:bg-sky-400 text-white px-4 py-2 rounded-xl font-bold text-sm btn-bubble">
+          + Tambah Soal
+        </button>
+        <div class="flex gap-2">
+          <button onclick="closeEditorModal()" class="bg-slate-300 hover:bg-slate-400 text-slate-800 px-4 py-2 rounded-xl font-bold text-sm">
+            Batal
+          </button>
+          <button onclick="saveQuestionsFromEditor()" class="bg-emerald-500 hover:bg-emerald-400 text-white px-5 py-2 rounded-xl font-bold text-sm btn-bubble">
+            Simpan
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC & AUDIO SYNTHESIZER -->
+  <script>
+    let quizData = [
+      { q: "Beruang dalam video memanjat pagar rumah warga pada malam hari.", a: true },
+      { q: "Beruang masuk permukiman karena ingin mengganggu warga.", a: false },
+      { q: "Beruang itu hewan jahat yang harus dibasmi.", a: false },
+      { q: "Jika ada hewan liar masuk kampung, warga boleh mendekatinya dan memberinya makan.", a: false },
+      { q: "Kejadian seperti dalam video bisa membahayakan hewan dan warga.", a: true }
+    ];
+
+    let currentIndex = 0;
+    let timerInterval = null;
+    let countdownValue = 5;
+
+    // WEB AUDIO SYNTHESIZER (Sound FX & Playful BGM)
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    let isBgmPlaying = false;
+    let bgmInterval = null;
+
+    function initAudio() {
+      if (!audioCtx) audioCtx = new AudioContext();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    // Playful Sound Effects
+    function playBeepSound(freq, type = 'sine', duration = 0.15) {
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function playSuccessFanfare() {
+      try {
+        initAudio();
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((freq, index) => {
+          setTimeout(() => playBeepSound(freq, 'triangle', 0.25), index * 120);
+        });
+      } catch (e) {}
+    }
+
+    function playWrongSound() {
+      try {
+        initAudio();
+        playBeepSound(220, 'sawtooth', 0.25);
+        setTimeout(() => playBeepSound(170, 'sawtooth', 0.35), 200);
+      } catch (e) {}
+    }
+
+    // Playful Synthesized Backsound Loop
+    function startBGM() {
+      if (isBgmPlaying) return;
+      initAudio();
+      isBgmPlaying = true;
+      document.getElementById('bgmBtn').innerText = '🔊';
+      
+      const melodyNotes = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63]; // C4, E4, G4, C5, G4, E4
+      let noteIdx = 0;
+
+      bgmInterval = setInterval(() => {
+        if (!isBgmPlaying) return;
+        try {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = melodyNotes[noteIdx];
+          gain.gain.value = 0.03; // Soft background volume
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.3);
+          osc.stop(audioCtx.currentTime + 0.3);
+
+          noteIdx = (noteIdx + 1) % melodyNotes.length;
+        } catch (e) {}
+      }, 400);
+    }
+
+    function stopBGM() {
+      isBgmPlaying = false;
+      clearInterval(bgmInterval);
+      document.getElementById('bgmBtn').innerText = '🔇';
+    }
+
+    function toggleBGM() {
+      if (isBgmPlaying) {
+        stopBGM();
+      } else {
+        startBGM();
+      }
+    }
+
+    // RENDER SOAL SAAT INI
+    function renderCurrentQuestion() {
+      clearInterval(timerInterval);
+
+      document.getElementById('questionView').classList.remove('hidden');
+      document.getElementById('questionView').classList.add('flex');
+      document.getElementById('timerView').classList.add('hidden');
+      document.getElementById('timerView').classList.remove('flex');
+      document.getElementById('answerModal').classList.add('hidden');
+      document.getElementById('answerModal').classList.remove('flex');
+
+      const current = quizData[currentIndex];
+      document.getElementById('questionText').innerText = current.q;
+      document.getElementById('questionCounter').innerText = `Soal ${currentIndex + 1} / ${quizData.length}`;
+
+      document.getElementById('btnPrev').disabled = (currentIndex === 0);
+      if (currentIndex === quizData.length - 1) {
+        document.getElementById('btnNext').innerText = "Selesai 🏁";
+      } else {
+        document.getElementById('btnNext').innerText = "Berikutnya ➡️";
+      }
+    }
+
+    // MULAI TIMER 5 DETIK
+    function startCountdownPhase() {
+      initAudio();
+      if (!isBgmPlaying) startBGM();
+
+      document.getElementById('questionView').classList.add('hidden');
+      document.getElementById('questionView').classList.remove('flex');
+      
+      document.getElementById('timerView').classList.remove('hidden');
+      document.getElementById('timerView').classList.add('flex');
+
+      countdownValue = 5;
+      document.getElementById('countdownNumber').innerText = countdownValue;
+      playBeepSound(523.25, 'triangle', 0.15);
+
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        countdownValue--;
+        if (countdownValue > 0) {
+          document.getElementById('countdownNumber').innerText = countdownValue;
+          playBeepSound(523.25 + (5 - countdownValue) * 100, 'triangle', 0.15);
+        } else {
+          clearInterval(timerInterval);
+          showAnswerModal();
+        }
+      }, 1000);
+    }
+
+    // POP-UP JAWABAN
+    function showAnswerModal() {
+      const current = quizData[currentIndex];
+      const isTrue = current.a;
+
+      const headerBadge = document.getElementById('modalHeaderBadge');
+      const actionBox = document.getElementById('modalActionBox');
+      const actionText = document.getElementById('modalActionText');
+      const svgContainer = document.getElementById('modalSvgContainer');
+
+      if (isTrue) {
+        headerBadge.innerText = "JAWABAN: BENAR";
+        headerBadge.className = "inline-block px-8 py-2 rounded-full font-black text-xl text-white mb-4 bg-emerald-500 shadow-lg border-2 border-white";
+        
+        actionBox.className = "my-3 p-6 rounded-3xl bg-emerald-100 border-4 border-emerald-400 flex flex-col items-center justify-center";
+        actionText.innerText = "BERDIRI 🧍";
+        actionText.className = "text-5xl font-black text-emerald-800 mb-3";
+
+        svgContainer.innerHTML = `
+          <svg viewBox="0 0 120 150" class="w-full h-full drop-shadow">
+            <circle cx="60" cy="30" r="18" fill="#FDBA74" />
+            <path d="M 40 28 C 38 12, 82 12, 80 28 C 76 16, 44 16, 40 28 Z" fill="#1E293B" />
+            <path d="M 42 22 L 50 14 L 60 20 L 70 12 L 78 22 Z" fill="#1E293B" />
+            <circle cx="53" cy="28" r="2.5" fill="#1E293B" />
+            <circle cx="67" cy="28" r="2.5" fill="#1E293B" />
+            <path d="M 54 34 Q 60 39 66 34" stroke="#1E293B" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M 38 48 L 82 48 L 76 88 L 44 88 Z" fill="#60A5FA" stroke="#2563EB" stroke-width="1.5"/>
+            <polygon points="52,48 60,56 50,56" fill="#1E40AF" />
+            <polygon points="68,48 60,56 70,56" fill="#1E40AF" />
+            <rect x="68" y="58" width="8" height="10" rx="1" fill="#FFFFFF" stroke="#1E40AF" stroke-width="1"/>
+            <polygon points="72,60 75,64 69,64" fill="#DC2626"/>
+            <path d="M 40 50 L 30 64 L 38 72" stroke="#60A5FA" stroke-width="7" stroke-linecap="round" fill="none"/>
+            <path d="M 80 50 L 92 62 L 90 74" stroke="#60A5FA" stroke-width="7" stroke-linecap="round" fill="none"/>
+            <circle cx="90" cy="74" r="5" fill="#FDBA74" />
+            <path d="M 90 74 L 90 66" stroke="#FDBA74" stroke-width="4" stroke-linecap="round"/>
+            <rect x="44" y="86" width="32" height="6" fill="#1E293B" />
+            <rect x="56" y="86" width="8" height="6" fill="#CBD5E1" />
+            <path d="M 44 92 L 76 92 L 74 135 L 61 135 L 60 106 L 59 106 L 58 135 L 46 135 Z" fill="#1E3A8A" />
+            <ellipse cx="51" cy="138" rx="8" ry="4" fill="#0F172A" />
+            <ellipse cx="69" cy="138" rx="8" ry="4" fill="#0F172A" />
+          </svg>`;
+        playSuccessFanfare();
+      } else {
+        headerBadge.innerText = "JAWABAN: SALAH";
+        headerBadge.className = "inline-block px-8 py-2 rounded-full font-black text-xl text-white mb-4 bg-rose-500 shadow-lg border-2 border-white";
+        
+        actionBox.className = "my-3 p-6 rounded-3xl bg-rose-100 border-4 border-rose-400 flex flex-col items-center justify-center";
+        actionText.innerText = "DUDUK 🧘";
+        actionText.className = "text-5xl font-black text-rose-800 mb-3";
+
+        svgContainer.innerHTML = `
+          <svg viewBox="0 0 120 150" class="w-full h-full drop-shadow">
+            <rect x="35" y="50" width="50" height="25" rx="3" fill="#D97706" stroke="#92400E" stroke-width="1.5"/>
+            <rect x="42" y="75" width="5" height="40" fill="#64748B" />
+            <rect x="73" y="75" width="5" height="40" fill="#64748B" />
+            <circle cx="60" cy="30" r="17" fill="#FDBA74" />
+            <path d="M 42 28 C 40 12, 80 12, 78 28 C 74 16, 46 16, 42 28 Z" fill="#1E293B" />
+            <circle cx="54" cy="29" r="2.5" fill="#1E293B" />
+            <circle cx="66" cy="29" r="2.5" fill="#1E293B" />
+            <path d="M 54 35 Q 60 40 66 35" stroke="#1E293B" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M 42 46 L 78 46 L 74 78 L 46 78 Z" fill="#60A5FA" stroke="#2563EB" stroke-width="1.5"/>
+            <polygon points="54,46 60,54 52,54" fill="#1E40AF" />
+            <polygon points="66,46 60,54 68,54" fill="#1E40AF" />
+            <path d="M 76 48 L 90 40 L 96 28" stroke="#60A5FA" stroke-width="6" stroke-linecap="round" fill="none"/>
+            <circle cx="96" cy="26" r="5" fill="#FDBA74" />
+            <path d="M 94 22 L 99 26" stroke="#FDBA74" stroke-width="2" stroke-linecap="round"/>
+            <path d="M 44 48 L 36 68 L 52 70" stroke="#60A5FA" stroke-width="6" stroke-linecap="round" fill="none"/>
+            <circle cx="53" cy="70" r="4" fill="#FDBA74" />
+            <rect x="20" y="72" width="80" height="10" rx="2" fill="#F59E0B" stroke="#B45309" stroke-width="1.5" />
+            <rect x="25" y="82" width="70" height="14" fill="#E2E8F0" stroke="#94A3B8" stroke-width="1" />
+            <rect x="26" y="96" width="6" height="42" fill="#64748B" />
+            <rect x="88" y="96" width="6" height="42" fill="#64748B" />
+            <rect x="46" y="96" width="11" height="32" fill="#1E3A8A" />
+            <rect x="63" y="96" width="11" height="32" fill="#1E3A8A" />
+            <ellipse cx="51" cy="132" rx="7" ry="4" fill="#0F172A" />
+            <ellipse cx="68" cy="132" rx="7" ry="4" fill="#0F172A" />
+          </svg>`;
+        playWrongSound();
+      }
+
+      const modal = document.getElementById('answerModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeAnswerModal() {
+      document.getElementById('answerModal').classList.add('hidden');
+      document.getElementById('answerModal').classList.remove('flex');
+      nextQuestion();
+    }
+
+    function nextQuestion() {
+      if (currentIndex < quizData.length - 1) {
+        currentIndex++;
+      } else {
+        currentIndex = 0;
+      }
+      renderCurrentQuestion();
+    }
+
+    function previousQuestion() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        renderCurrentQuestion();
+      }
+    }
+
+    // EDITOR SOAL
+    function openEditorModal() {
+      const listContainer = document.getElementById('editorQuestionsList');
+      listContainer.innerHTML = '';
+
+      quizData.forEach((item, index) => {
+        const itemRow = document.createElement('div');
+        itemRow.className = "p-3 bg-slate-50 border rounded-2xl flex flex-col gap-2";
+        itemRow.innerHTML = `
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-slate-700 text-sm">Soal #${index + 1}</span>
+            <button onclick="removeQuestionField(${index})" class="text-rose-600 hover:text-rose-800 text-xs font-bold">Hapus ❌</button>
+          </div>
+          <input type="text" id="editQ_${index}" value="${item.q}" class="w-full p-2 border rounded-xl text-sm font-bold" placeholder="Tuliskan soal...">
+          <div class="flex items-center gap-4">
+            <label class="text-xs font-bold text-slate-600">Jawaban:</label>
+            <label class="inline-flex items-center gap-1 text-sm font-bold text-emerald-700 cursor-pointer">
+              <input type="radio" name="editA_${index}" value="true" ${item.a ? 'checked' : ''}> BENAR (Berdiri)
+            </label>
+            <label class="inline-flex items-center gap-1 text-sm font-bold text-rose-700 cursor-pointer">
+              <input type="radio" name="editA_${index}" value="false" ${!item.a ? 'checked' : ''}> SALAH (Duduk)
+            </label>
+          </div>
+        `;
+        listContainer.appendChild(itemRow);
+      });
+
+      document.getElementById('editorModal').classList.remove('hidden');
+      document.getElementById('editorModal').classList.add('flex');
+    }
+
+    function closeEditorModal() {
+      document.getElementById('editorModal').classList.add('hidden');
+      document.getElementById('editorModal').classList.remove('flex');
+    }
+
+    function addNewQuestionField() {
+      quizData.push({ q: "Soal baru...", a: true });
+      openEditorModal();
+    }
+
+    function removeQuestionField(index) {
+      if (quizData.length <= 1) {
+        alert("Minimal 1 soal!");
+        return;
+      }
+      quizData.splice(index, 1);
+      openEditorModal();
+    }
+
+    function saveQuestionsFromEditor() {
+      const newQuizData = [];
+      for (let i = 0; i < quizData.length; i++) {
+        const qInput = document.getElementById(`editQ_${i}`);
+        const aInputs = document.getElementsByName(`editA_${i}`);
+        let selectedA = true;
+        for (const radio of aInputs) {
+          if (radio.checked) {
+            selectedA = (radio.value === 'true');
+            break;
+          }
+        }
+        if (qInput) newQuizData.push({ q: qInput.value, a: selectedA });
+      }
+      if (newQuizData.length > 0) {
+        quizData = newQuizData;
+        currentIndex = 0;
+        renderCurrentQuestion();
+        closeEditorModal();
+      }
+    }
+
+    // CONTROLLER KEYBOARD
+    document.addEventListener('keydown', (e) => {
+      if (!document.getElementById('editorModal').classList.contains('hidden')) return;
+
+      if (e.key === 'ArrowRight') nextQuestion();
+      else if (e.key === 'ArrowLeft') previousQuestion();
+      else if (e.key === ' ' || e.key === 'Enter') {
+        if (!document.getElementById('questionView').classList.contains('hidden')) {
+          startCountdownPhase();
+        } else if (!document.getElementById('answerModal').classList.contains('hidden')) {
+          closeAnswerModal();
+        }
+      }
+    });
+
+    window.onload = function() {
+      renderCurrentQuestion();
+    };
+  </script>
+</body>
+</html>
